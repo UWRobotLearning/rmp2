@@ -1,0 +1,7 @@
+[run]
+source =
+  robolearn
+
+omit =
+  tests
+  examples
