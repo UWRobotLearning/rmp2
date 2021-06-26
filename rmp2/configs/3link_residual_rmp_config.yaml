@@ -1,0 +1,57 @@
+robot_name: '3link'
+
+eef_link: 'link4'
+
+default_q: [0., 0., 0.]
+
+joint_limit_buffers: [0., 0., 0.]
+
+rmp_params:
+    joint_velocity_cap_rmp:
+        max_velocity: 1
+        velocity_damping_region: 0.1
+        damping_gain: 5.0
+        metric_weight: 0.05
+    collision_rmp:
+        margin: 0.
+        damping_gain: 50.
+        damping_std_dev: .04
+        damping_robustness_eps: .01
+        damping_velocity_gate_length_scale: .01
+        repulsion_gain: 800.
+        repulsion_std_dev: .01
+        metric_modulation_radius: 0.5
+        metric_scalar: 1.
+        metric_exploder_std_dev: .02
+        metric_exploder_eps: .001
+    damping_rmp:
+        accel_d_gain: 5.
+        metric_scalar: 0.005
+        inertia: 0.3
+    external_rmps:
+        - name: 'nn_attractor'
+          link: 'link4'
+          handcrafted_rmp: 'target_rmp'
+          handcrafted_rmp_config:
+              accel_p_gain: 5.
+              accel_d_gain: 10.
+              accel_norm_eps: .075
+              metric_alpha_length_scale: .05
+              min_metric_alpha: .03
+              max_metric_scalar: 1.
+              min_metric_scalar: 0.5
+              proximity_metric_boost_scalar: 5.
+              proximity_metric_boost_length_scale: .02
+
+body_obstacles: []
+
+arm_collision_controllers:
+    - segment: [link1, link2]
+      interpolation_pts: 5
+      radius: .025
+    - segment: [link2, link3]
+      interpolation_pts: 5
+      radius: .025
+    - segment: [link3, link4]
+      interpolation_pts: 5
+      radius: .025

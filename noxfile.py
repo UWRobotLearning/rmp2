@@ -1,5 +1,5 @@
 """Nox sessions."""
-from pathlib import Path
+# from pathlib import Path
 
 import nox
 from nox.sessions import Session

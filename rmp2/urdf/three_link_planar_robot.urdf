@@ -1,0 +1,199 @@
+<robot name="three_link_planar_robot">
+
+  <material name="blue">
+    <color rgba="0 0 .8 1"/>
+  </material>
+
+  <material name="yellow">
+    <color rgba="0.96 0.80 .26 1"/>
+  </material>
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.05" radius="0.1"/>
+      </geometry>
+      <origin xyz="0 0 0.025" rpy="0 0 0" />
+      <material name="yellow"/>
+    </visual>
+    <inertial>
+      <mass value="10"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="base_to_base_axis" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_axis"/>
+    <origin xyz="0 0 0.075" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+  <link name="base_axis">
+    <visual>
+      <geometry>
+        <cylinder length="0.075" radius="0.03"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <inertial>
+      <mass value="10"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="joint1" type="continuous">
+    <parent link="base_axis"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit effort="1000" velocity="1"/>
+    <!-- <limit effort="1000" lower="-3.14" upper="3.14" velocity="1"/> -->
+  </joint>
+
+  <link name="link1">
+    <visual>
+      <geometry>
+        <cylinder length="0.25" radius="0.025"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0.125 0 0"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.25" radius="0.025"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0.125 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="10"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="link1_to_axis1" type="fixed">
+    <parent link="link1"/>
+    <child link="axis1"/>
+    <origin xyz="0.25 0 0" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+  <link name="axis1">
+    <visual>
+      <geometry>
+        <cylinder length="0.125" radius="0.03"/>
+      </geometry>
+      <origin xyz="0 0 0.0375" rpy="0 0 0" />
+      <material name="yellow"/>
+    </visual>
+    <inertial>
+      <mass value="10"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+
+  <joint name="joint2" type="continuous">
+    <parent link="axis1"/>
+    <child link="link2"/>
+    <origin xyz="0 0 0.075" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit effort="1000" velocity="1"/>
+    <!-- <limit effort="1000" lower="-3.14" upper="3.14" velocity="1"/> -->
+  </joint>
+
+  <link name="link2">
+    <visual>
+      <geometry>
+        <cylinder length="0.25" radius="0.025"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0.125 0 0"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.25" radius="0.025"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0.125 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="10"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="link2_to_axis2" type="fixed">
+    <parent link="link2"/>
+    <child link="axis2"/>
+    <origin xyz="0.25 0 0" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+  <link name="axis2">
+    <visual>
+      <geometry>
+        <cylinder length="0.125" radius="0.03"/>
+      </geometry>
+      <origin xyz="0 0 0.0375" rpy="0 0 0" />
+      <material name="yellow"/>
+    </visual>
+    <inertial>
+      <mass value="10"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="joint3" type="continuous">
+    <parent link="axis2"/>
+    <child link="link3"/>
+    <origin xyz="0 0 0.075" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+    <limit effort="1000" velocity="1"/>
+    <!-- <limit effort="1000" lower="-3.14" upper="3.14" velocity="1"/> -->
+  </joint>
+
+  <link name="link3">
+    <visual>
+      <geometry>
+        <cylinder length="0.25" radius="0.025"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0.125 0 0"/>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.25" radius="0.025"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0.125 0 0"/>
+    </collision>
+    <inertial>
+      <mass value="10"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+
+  <joint name="joint4" type="fixed">
+    <parent link="link3"/>
+    <child link="link4"/>
+    <origin xyz="0.25 0 0" rpy="0 0 0" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+  <link name="link4">
+    <visual>
+      <geometry>
+        <sphere radius="0.025"/>
+      </geometry>
+      <material name="yellow"/>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="0.025"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+    </inertial>
+  </link>
+</robot>

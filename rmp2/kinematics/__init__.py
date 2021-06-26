@@ -1,0 +1,1 @@
+from rmp2.kinematics.tf_fk import Robot
