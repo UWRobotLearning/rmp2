@@ -1,3 +1,7 @@
+"""
+registering the customized envs and models for rllib
+"""
+
 from ray.rllib.models import ModelCatalog
 from ray.tune.registry import register_env
 

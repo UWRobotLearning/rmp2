@@ -1,3 +1,7 @@
+"""
+Base class for rmp2 graph
+"""
+
 from rmp2.utils.tf_utils import ip, ipm, solve, gradient, batch_jacobian
 from rmp2.utils.python_utils import timing
 import tensorflow as tf

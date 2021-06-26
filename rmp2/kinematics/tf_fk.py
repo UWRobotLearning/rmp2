@@ -1,3 +1,7 @@
+"""
+Computing the robot forword kinematics in tensorflow
+"""
+
 from rmp2.utils.tf_transform_utils import T_prismatic, T_revolute, T_rpy
 from urdf_parser_py.urdf import URDF
 import tensorflow as tf

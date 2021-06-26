@@ -1,3 +1,5 @@
+# rmp configuration of the hand-designed rmp2 policy for 3-link robot
+
 robot_name: '3link'
 
 eef_link: 'link4'

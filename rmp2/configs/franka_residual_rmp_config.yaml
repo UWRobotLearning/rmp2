@@ -1,3 +1,6 @@
+# rmp configuration of the rmp2 policy for franka robot
+# in residual rmp policy learning
+
 robot_name: 'franka'
 
 eef_link: 'panda_grasptarget'

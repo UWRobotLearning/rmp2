@@ -1,3 +1,6 @@
+# rmp configuration of the rmp2 policy for 3-link robot
+# in residual nn policy learning
+
 robot_name: '3link'
 
 eef_link: 'link4'

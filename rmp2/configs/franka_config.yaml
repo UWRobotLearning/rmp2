@@ -1,3 +1,5 @@
+# rmp configuration of the hand-designed rmp2 policy for franka robot
+
 robot_name: 'franka'
 
 eef_link: 'panda_grasptarget'

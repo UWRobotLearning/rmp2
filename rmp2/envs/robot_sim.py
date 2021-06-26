@@ -1,6 +1,11 @@
+"""
+acceleration-based control for a pybullet robot
+"""
+
 from rmp2.utils.robot_config_utils import get_robot_urdf_path, get_robot_eef_uid
 import numpy as np
 
+# pybullet macro
 JOINT_POSE_IDX = 0
 JOINT_VEL_IDX = 1
 JOINT_TORQUE_IDX = 3
@@ -12,11 +17,31 @@ JOINT_UPPER_LIMIT_IDX = 9
 JOINT_VEL_LIMIT_IDX = 11
 LINK_NAME_IDX = 12
 
+# control modes:
+
+# CLOSED LOOP (NOT RECOMMENDED): Both the actual
+# joint angles and actual joint velocities are 
+# used to compute the reference next-step joint 
+# angles and velocities for the low-level pd 
+# controller. This often leads to unstable behavior 
+# and is hence not recommended
 CLOSED_LOOP = 0
+# VELOCITY OPEN LOOP (DEFAULT): The actual joint 
+# angles and virtual joint velocities (computed 
+# through numerically integrating the accelerations) 
+# are used to compute the reference joint angles and 
+# velocities
 VEL_OPEN_LOOP = 1
+# OPEN LOOP: The virtual joint angles and joint 
+# velocities (both computed through numerical
+# integration) are used to compute the reference 
+# joint angles and velocities
 OPEN_LOOP = 2
 
 class RobotSim(object):
+    """
+    acceleration-based control for a pybullet robot
+    """
     def __init__(self, urdf_path, eef_uid, bullet_client, time_step, mode=VEL_OPEN_LOOP):
         self.bullet_client = bullet_client
         self.time_step = time_step
@@ -44,6 +69,9 @@ class RobotSim(object):
 
 
     def reset(self, initial_config, initial_vel):
+        """
+        reset the robot to initial configuration and velocity
+        """
         initial_config = np.array(initial_config)
         initial_vel = np.array(initial_vel)
 
@@ -60,6 +88,10 @@ class RobotSim(object):
         self.target_joint_vels = self.joint_vels
 
     def step(self, action):
+        """
+        apply velocity control to the robot
+        :param action: joint accelerations
+        """
         if self.joint_poses is None or self.joint_vels is None:
             raise Exception('Error: make sure to call reset() before step!')
         
@@ -79,6 +111,17 @@ class RobotSim(object):
             targetPositions=self.target_joint_poses, targetVelocities=self.target_joint_vels)
 
     def get_observation(self):
+        """
+        joint angles and velocities of the robot.
+        for CLOSED_LOOP (NOT RECOMMENDED): both joint 
+            angles and velocities are given by the 
+            pybullet simulator
+        for VEL_OPEN_LOOP: joint angles are given by the
+            pybullet simulator, yet the joint velocities 
+            are given by numerical integration
+        for OPEN_LOOP: both joint angles and velocities
+            are given by numerical integration
+        """
         full_joint_states = self.bullet_client.getJointStates(
             self.robot_uid, self._joint_indices)
         if self._mode == OPEN_LOOP:
@@ -94,6 +137,9 @@ class RobotSim(object):
         return self.joint_poses.copy(), self.joint_vels.copy(), self.joint_torques.copy()
 
     def _set_joint_indices(self):
+        """
+        set the joint limits for the robot
+        """
         self._joint_indices = []
         self._joint_lower_limit = []
         self._joint_upper_limit = []
@@ -101,7 +147,6 @@ class RobotSim(object):
         self._link_index = {}
 
         for j in range(self.bullet_client.getNumJoints(self.robot_uid)):
-            # self.bullet_client.changeDynamics(self.robot_uid, j, linearDamping=0, angularDamping=0)
             info = self.bullet_client.getJointInfo(self.robot_uid, j)
             joint_name = info[JOINT_NAME_IDX]
             joint_type = info[JOINT_TYPE_IDX]
@@ -130,6 +175,15 @@ class RobotSim(object):
 
 
 def create_robot_sim(robot_name, bullet_client, time_step, mode=VEL_OPEN_LOOP):
+    """
+    create a acceleration-based control robot given name
+    :param robot_name: robot name, 3link or franka
+    :param bullet_client: pybullet client
+    :param time_step: simulation time between steps
+    :param mode: control mode (see macros)
+    :return robot_sim: RobotSim object for 
+    acceleration-based control of the robot
+    """
     urdf_path = get_robot_urdf_path(robot_name)
     eef_uid = get_robot_eef_uid(robot_name)
     robot_sim = RobotSim(urdf_path, eef_uid, bullet_client=bullet_client, time_step=time_step, mode=mode)

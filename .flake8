@@ -1,7 +1,0 @@
-[flake8]
-select = B,B9,C,E,F,N,W
-ignore = E203,E501,W503,N816
-max-line-length = 88
-max-complexity = 10
-docstring-convention = google
-per-file-ignores = tests/*:S101

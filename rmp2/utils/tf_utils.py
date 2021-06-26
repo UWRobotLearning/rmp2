@@ -1,3 +1,7 @@
+"""
+helper functions in tensorflow
+"""
+
 import tensorflow as tf
 import numpy as np
 from collections.abc import Iterable, Sized

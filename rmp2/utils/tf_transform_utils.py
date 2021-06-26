@@ -6,6 +6,9 @@
 # Copyright (c) 2018 mahaarbo
 # Licensed under the MIT License.
 
+"""
+rigid body transformation in tensorflow
+"""
 
 import tensorflow as tf
 

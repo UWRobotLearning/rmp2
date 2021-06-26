@@ -1,3 +1,7 @@
+"""
+helper functions for pybullet
+"""
+
 import pybullet as p
 
 def add_goal(bullet_client, position, radius=0.05, color=[0.0, 1.0, 0.0, 1]):

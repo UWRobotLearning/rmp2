@@ -1,3 +1,7 @@
+"""
+helper function for creating policy networks
+"""
+
 from rmp2.utils.tf_utils import MLP
 import tensorflow as tf
 import numpy as np

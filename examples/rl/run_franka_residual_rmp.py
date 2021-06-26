@@ -1,3 +1,7 @@
+"""
+Script for training residual rmp policy for the franka robot
+"""
+
 import argparse
 
 import ray
@@ -7,26 +11,27 @@ from rmp2.utils.rllib_utils import register_envs_and_models
 
 
 parser = argparse.ArgumentParser()
+# training config
 parser.add_argument("--run", type=str, default="PPO")
 parser.add_argument("--experiment-name", type=str, default=None)
-parser.add_argument("--as-test", action="store_true")
 parser.add_argument("--stop-iters", type=int, default=500)
 parser.add_argument("--checkpoint-freq", type=int, default=1)
-
+parser.add_argument("--n-seeds", type=int, default=1)
+# env config
 parser.add_argument("--env", type=str, default='franka_rmp')
-
+parser.add_argument("--obs-num", type=int, default=3)
+# hyperparameters
 parser.add_argument("--nn-size", type=int, default=256)
 parser.add_argument("--activation", type=str, default='elu')
 parser.add_argument("--lr", type=float, default=5e-5)
 parser.add_argument("--clip-param", type=float, default=0.2)
 parser.add_argument("--lambd", type=float, default=0.99)
-parser.add_argument("--batch-size", type=int, default=67312) # 336560
+parser.add_argument("--batch-size", type=int, default=67312)
 parser.add_argument("--sgd-minibatch-size", type=int, default=4096)
-parser.add_argument("--n-seeds", type=int, default=4)
-parser.add_argument("--obs-num", type=int, default=3)
 parser.add_argument("--layer-init-scale", type=float, default=0.01)
+# parallelism
+parser.add_argument("--n-workers", type=int, default=1)
 
-parser.add_argument("--n-workers", type=int, default=8)
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -37,11 +42,12 @@ if __name__ == "__main__":
     else:
         experiment_name = args.experiment_name
 
-
+    # initialize ray
     ray.init()
-
+    # register customized environments and models within ray
     register_envs_and_models()
 
+    # environment configuration
     env_config = {
         "horizon": 1800,
         "max_obstacle_num": args.obs_num,
@@ -50,6 +56,7 @@ if __name__ == "__main__":
         "dtype": 'float32',
     }
 
+    # rmp model configuration
     rmp_config = {
             'model': 'flat_rmp',
             'x_shape': 3,  
@@ -60,13 +67,13 @@ if __name__ == "__main__":
             'output_layer_init_scale': args.layer_init_scale,
         }
 
-    if 'obstacle_configs' in env_config:
-        max_obstacle_num = max(len(c) for c in env_config['obstacle_configs'])
-    else:
-        max_obstacle_num = env_config['max_obstacle_num']
+    
+    # compute feature shape required by the RMP network
+    max_obstacle_num = env_config['max_obstacle_num']
     rmp_config['feature_shape'] = 3 + 4 * max_obstacle_num
     rmp_config['feature_keys'] = ['goal', 'obstacles']
 
+    # experiment configuration
     config = {
         "env": args.env,
         "env_config": env_config,
@@ -116,6 +123,8 @@ if __name__ == "__main__":
         }
     }
 
+    # run experiments
     run_experiments(experiments, reuse_actors=True, concurrent=True)
 
+    # shut down ray
     ray.shutdown()

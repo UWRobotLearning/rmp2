@@ -1,3 +1,7 @@
+"""
+python helper functions
+"""
+
 from contextlib import contextmanager
 import time
 

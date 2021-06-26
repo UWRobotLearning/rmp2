@@ -1,3 +1,6 @@
+"""
+pre-specified rmp2 graph class for robots
+"""
 
 from rmp2.rmpgraph.rmpgraph import RMPGraph
 from rmp2.kinematics import Robot
@@ -32,10 +35,10 @@ def get_control_points(link_positions, arm_collision_controllers):
 
 
 class RobotRMPGraph(RMPGraph):
+    """
+    pre-specified rmp2 graph class for robots
+    """
     def __init__(self, robot_name=None, config_path=None, config=None, workspace_dim=3, dtype=tf.float32, rmp_type='canonical', timed=False, offset=1e-3, name='robot'):
-        """
-        documentation....
-        """
         assert(robot_name is not None or config_path is not None or config is not None)
         assert(config_path is None or config is None)
         # set up robot
@@ -75,7 +78,8 @@ class RobotRMPGraph(RMPGraph):
                     for external_rmp in self.rmp_config[key]:
                         rmps.append(ExternalCanonicalRMP(**external_rmp, dtype=dtype))
                         self.keys.append('external_rmp')
-        
+
+        # control points setup
         self.arm_collision_controllers = config['arm_collision_controllers']
 
         arm_collision_radii = []
@@ -84,6 +88,7 @@ class RobotRMPGraph(RMPGraph):
 
         self.arm_collision_radii = tf.expand_dims(tf.constant(arm_collision_radii, dtype=dtype), 0)
 
+        # handle collision avoidance with the base of the robot
         body_obstacles = dict()
         body_obstacle_box_mins = []
         body_obstacle_box_maxs = []

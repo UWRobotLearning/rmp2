@@ -1,3 +1,7 @@
+"""
+wrapper classes for input/output of the environment
+"""
+
 from abc import ABC, abstractmethod
 import tensorflow as tf
 
@@ -16,26 +20,29 @@ def load_env_wrapper(envid, dtype=tf.float32):
 
 
 class EnvWrapper(ABC):
+    """
+    wrapper class for input/output of the environment
+    """
     @abstractmethod
     def obs_to_policy_input(self, obs):
         """
-        params: environment observation
-        return: input to the policy
+        params obs: environment observation
+        return policy_input: input to the policy
         """
         
     
     @abstractmethod
     def obs_to_value_input(self, obs):
         """
-        params: environment observation
-        return: input to the value function
+        params obs: environment observation
+        return value_input: input to the value function
         """
 
     @abstractmethod
     def policy_output_to_action(self, actions):
         """
-        params: output of the policy
-        return: action to the environment
+        params actions:  output of the policy
+        return env_actions: action to the environment
         """
 
 

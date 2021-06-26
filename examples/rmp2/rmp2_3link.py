@@ -1,3 +1,8 @@
+"""
+Script for rolling out a hand-designed rmp2 policy on the 3-link robot
+rmp parameters are given in rmp2/configs/3link_config.yaml
+"""
+
 from rmp2.rmpgraph import RobotRMPGraph
 from rmp2.envs import ThreeLinkEnv
 from rmp2.utils.env_wrappers import ThreeLinkFullRMPWrapper

@@ -1,3 +1,7 @@
+"""
+helper functions for sampling from torus in 2d and 3d
+"""
+
 import numpy as np
 
 def sample_from_torus_3d(random_generator, angle_center, angle_range, major_radius, minor_radius, height):

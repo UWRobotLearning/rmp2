@@ -1,3 +1,7 @@
+"""
+Base gym environment for 3-link robot
+"""
+
 from rmp2.envs.robot_env import RobotEnv
 from rmp2.utils.np_utils import sample_from_torus_2d
 from rmp2.utils.python_utils import merge_dicts
@@ -27,6 +31,9 @@ DEFAULT_CONFIG = {
 }
 
 class ThreeLinkEnv(RobotEnv):
+    """
+    Base gym environment for 3-link robot
+    """
     def __init__(self, config=None):
         if config is not None:
             config = merge_dicts(DEFAULT_CONFIG, config)
@@ -50,7 +57,7 @@ class ThreeLinkEnv(RobotEnv):
             config=config)
 
     def _generate_random_goal(self):
-        
+        # if goal is given, use the fixed goal
         if self.goal is None:
             current_goal = sample_from_torus_2d(
                 self.np_random,
@@ -58,8 +65,10 @@ class ThreeLinkEnv(RobotEnv):
                 self._goal_torus_angle_range,
                 self._goal_torus_major_radius,
                 self._goal_torus_minor_radius)
+        # otherwise, sample a random goal with the specified parameters
         else:
             current_goal = self.goal
+        # generate goal object within pybullet
         goal_uid = add_goal(self._p, np.append(current_goal, 0.25))
         return current_goal, goal_uid
         
@@ -67,6 +76,7 @@ class ThreeLinkEnv(RobotEnv):
         current_obs = []
         obs_uids = []
 
+        # if obstacle config list is given, sample one config from the list
         if self.obstacle_cofigs is not None:
             config = self.obstacle_cofigs[self.np_random.randint(len(self.obstacle_cofigs))]
             for (i, obstacle) in enumerate(config):
@@ -79,6 +89,7 @@ class ThreeLinkEnv(RobotEnv):
                 current_obs.append(np.append(obstacle['center'], obstacle['radius']))
             for i in range(len(config), self.max_obstacle_num):
                 current_obs.append(np.append(np.zeros(self.workspace_dim), -1.))
+        # otherwise, sample random obstacles with the specified parameters
         else:
             num_obstacles = self.np_random.randint(self.min_obstacle_num, self.max_obstacle_num + 1)
             for i in range(self.max_obstacle_num):
@@ -96,5 +107,6 @@ class ThreeLinkEnv(RobotEnv):
                     current_obs.append(np.append(center, radius))
                 else:
                     current_obs.append(np.append(np.zeros(self.workspace_dim), -1.))
+        # generate obstacle objects within pybullet
         current_obs = np.array(current_obs).flatten()
         return current_obs, obs_uids

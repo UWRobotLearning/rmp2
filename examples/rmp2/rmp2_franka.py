@@ -1,3 +1,8 @@
+"""
+Script for rolling out a hand-designed rmp2 policy on the franka robot
+rmp parameters are given in rmp2/configs/franka_config.yaml
+"""
+
 from rmp2.rmpgraph import RobotRMPGraph
 from rmp2.envs import FrankaEnv
 from rmp2.utils.env_wrappers import FrankaFullRMPWrapper

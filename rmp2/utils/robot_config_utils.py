@@ -1,3 +1,7 @@
+"""
+helper functions for loading robot urdf and rmp configurations
+"""
+
 import yaml
 import os
 

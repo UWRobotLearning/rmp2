@@ -1,3 +1,8 @@
+"""
+helper functions for computing the distance between balls 
+and between balls and boxes
+"""
+
 from rmp2.utils.tf_utils import pdist2
 import tensorflow as tf
 
@@ -12,10 +17,13 @@ def distmap(type, control_points, control_point_radii, **params):
 
 def dist2balls(control_points, control_point_radii, obstacle_centers, obstacle_radii):
     """
-    control_points: batch_size x num_control_points x dimension
-    control_point_radii: 1 x num_control_points
-    obstacle_centers: batch_size x num_obstacles x dimension
-    obstacle_radii: batch_size x num_obstacles
+    compute the distance between control point balls and obstacle balls
+    :param control_points: batch_size x num_control_points x dimension, control point positions
+    :param control_point_radii: 1 x num_control_points, control point ball radii
+    obstacle_centers: batch_size x num_obstacles x dimension, obstacle center positions
+    obstacle_radii: batch_size x num_obstacles, obstacle radii
+    :return obstacle_dists: batch_size x num_control_points x num_obstacles, 
+    distance between control point balls and obstacle boxes
     """
     center_dists = pdist2(control_points, obstacle_centers)
     obstacle_radii = tf.expand_dims(obstacle_radii, 1)
@@ -29,10 +37,13 @@ def dist2balls(control_points, control_point_radii, obstacle_centers, obstacle_r
 
 def dist2boxes(control_points, control_point_radii, obstacle_mins, obstacle_maxs):
     """
-    control_points: batch_size x num_control_points x dimension
-    control_point_radii: 1 x num_control_points
-    obstacle_mins: batch_size x num_obstacles x dimension
-    obstacle_maxs: batch_size x num_obstacles x dimension
+    compute the distance between control point balls and obstacle boxes
+    :param control_points: batch_size x num_control_points x dimension, control point positions
+    :param control_point_radii: 1 x num_control_points, control point ball radii
+    :param obstacle_mins: batch_size x num_obstacles x dimension, lower corners of obstacle boxes
+    :param obstacle_maxs: batch_size x num_obstacles x dimension, upper corner of obstacle boxes
+    :return obstacle_dists: batch_size x num_control_points x num_obstacles, 
+    distance between control point balls and obstacle boxes
     """
     control_points = tf.expand_dims(control_points, 2)
     obstacle_mins = tf.expand_dims(obstacle_mins, 1)

@@ -1,3 +1,7 @@
+"""
+Script for training nn policy or residual nn policy for the franka robot
+"""
+
 import argparse
 
 import ray
@@ -7,40 +11,41 @@ from rmp2.utils.rllib_utils import register_envs_and_models
 
 
 parser = argparse.ArgumentParser()
+# training config
 parser.add_argument("--run", type=str, default="PPO")
 parser.add_argument("--experiment-name", type=str, default=None)
-parser.add_argument("--as-test", action="store_true")
 parser.add_argument("--stop-iters", type=int, default=500)
 parser.add_argument("--checkpoint-freq", type=int, default=1)
-
-parser.add_argument("--env", type=str, default='franka')
-
+parser.add_argument("--n-seeds", type=int, default=1)
+# env config
+parser.add_argument("--env", type=str, default='franka') # or franka_residual for residual learning
+parser.add_argument("--obs-num", type=int, default=3)
+# hyperparameters
 parser.add_argument("--nn-size", type=int, default=512)
 parser.add_argument("--lr", type=float, default=5e-5)
 parser.add_argument("--clip-param", type=float, default=0.2)
 parser.add_argument("--lambd", type=float, default=0.99)
 parser.add_argument("--batch-size", type=int, default=67312) # 336560
 parser.add_argument("--sgd-minibatch-size", type=int, default=4096) # 336560
-parser.add_argument("--n-seeds", type=int, default=4)
-parser.add_argument("--obs-num", type=int, default=3)
+# parallelism
+parser.add_argument("--n-workers", type=int, default=1)
 
-
-parser.add_argument("--n-workers", type=int, default=10)
 
 if __name__ == "__main__":
     args = parser.parse_args()
     if args.experiment_name is None:
         experiment_name = args.env + '-nn-' + str(args.nn_size) + '-lr-' + str(args.lr) + \
-            '-cp-' + str(args.clip_param) + '-l-' + str(args.lambd) + '-bs-' + str(args.batch_size) + str(args.batch_size) +\
+            '-cp-' + str(args.clip_param) + '-l-' + str(args.lambd) + '-bs-' + str(args.batch_size) +\
             '-obs-num-' + str(args.obs_num)
     else:
         experiment_name = args.experiment_name
 
-
+    # initialize ray
     ray.init()
-
+    # register customized environments and models within ray
     register_envs_and_models()
 
+    # environment configuration
     env_config = {
         "horizon": 1800,
         "max_obstacle_num": args.obs_num,
@@ -48,7 +53,7 @@ if __name__ == "__main__":
         'q_init': [ 0.0000, -0.7854,  0.0000, -2.4435,  0.0000,  1.6581,  0.75],
     }
 
-
+    # experiment configuration
     config = {
         "env": args.env,
         "env_config": env_config,
@@ -104,6 +109,8 @@ if __name__ == "__main__":
         }
     }
 
+    # run experiments
     run_experiments(experiments, reuse_actors=True, concurrent=True)
 
+    # shut down ray
     ray.shutdown()

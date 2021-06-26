@@ -1,7 +1,17 @@
+"""
+hand-designed and learnable rmps
+"""
+
 import tensorflow as tf
 from abc import abstractmethod
 
 def get_rmp(rmp_type, params, dtype):
+    """
+    return an rmp instance given type and params
+    :param rmp_type: str, rmp type
+    :param params: dict, rmp parameters
+    :param dtype: str, e.g. float32 or float64
+    """
     if rmp_type == 'cspace_target_rmp':
         rmp = CSpaceTarget(dtype=dtype, **params)
     elif rmp_type == 'joint_limit_rmp':
@@ -19,8 +29,16 @@ def get_rmp(rmp_type, params, dtype):
     return rmp
 
 class RMP(tf.Module):
+    """
+    base rmp class
+    """
     def __init__(self, feature_keys=None, name='rmp', dtype=tf.float32):
         super().__init__(name=name)
+        """
+        :param feature_keys: keys for features as a list, e.g. ['goal', 'obstacles']
+        :param name: name for the module
+        :param dtype: dtype, str or tf.floatX
+        """
         if feature_keys is None:
             self.feature_keys = []
         else:
@@ -29,6 +47,14 @@ class RMP(tf.Module):
 
 
     def rmp_eval(self, x, xd, rmp_type='canonical', **features):
+        """
+        evaluating the rmp node
+        :param x: tf.Tensor, position
+        :param xd: tf.Tensor, velocity
+        :param rmp_type: str, canonical or natural
+        :param features: dict, all features as a dictionary
+        """
+        # only select the features specified by feature_keys
         selected_features = {key: features[key] for key in self.feature_keys}
         if rmp_type == 'canonical':
             return self.rmp_eval_canonical(x, xd, **selected_features)
@@ -39,12 +65,22 @@ class RMP(tf.Module):
     def rmp_eval_canonical(self, x, xd, **features):
         """
         canonical rmp eval
+        :param x: tf.Tensor position
+        :param xd: tf.Tensor velocity
+        :param features: dict, all selected features
+        :return metric: rmp importance weight
+        :return acceleration: rmp acceleration
         """
 
     @abstractmethod
     def rmp_eval_natural(self, x, xd, **features):
         """
         natural rmp eval
+        :param x: tf.Tensor position
+        :param xd: tf.Tensor velocity
+        :param features: dict, all selected features
+        :return metric: rmp importance weight
+        :return force: rmp force (importance weight * acceleration)
         """
 
     def __call__(self, x, xd, rmp_type='canonical', **features):
@@ -53,6 +89,9 @@ class RMP(tf.Module):
 
 
 class CSpaceTarget(RMP):
+    """
+    configuration space target reaching (default configuration)
+    """
     def __init__(self, metric_scalar, position_gain, damping_gain,
         robust_position_term_thresh, inertia,
         name='cspace_target', dtype=tf.float32):

@@ -1,3 +1,7 @@
+"""
+Base gym environment for pybullet robots
+"""
+
 from rmp2.envs import robot_sim
 from rmp2.utils.python_utils import merge_dicts
 from rmp2.utils.bullet_utils import add_collision_goal
@@ -10,11 +14,12 @@ import time
 from pkg_resources import parse_version
 from abc import abstractmethod
 
+# visualization configs
 largeValObservation = 100
-
 RENDER_HEIGHT = 720
 RENDER_WIDTH = 960
 
+# pybullet macros
 BULLET_LINK_POSE_INDEX = 4
 BULLET_CLOSEST_POINT_CONTACT_FLAG_INDEX = 0
 BULLET_CLOSEST_POINT_CONTACT_NORMAL_INDEX = 7
@@ -68,12 +73,20 @@ DEFAULT_CONFIG = {
 
 
 class RobotEnv(gym.Env):
+    """
+    Base gym environment for pybullet robots
+    """
     metadata = {'render.modes': ['human', 'rgb_array'], 'video.frames_per_second': 50}
 
     def __init__(self,
                 robot_name,
                 workspace_dim,
                 config=None):
+        """
+        :param robot_name: str, the name of the robot, 3link or franka
+        :param workspace_dim: int, workspace dimension, either 2 or 3
+        :param config: dict, for overwriting the default configs
+        """
         # merge config with default config
         if config is not None:
             config = merge_dicts(DEFAULT_CONFIG, config)
@@ -172,6 +185,9 @@ class RobotEnv(gym.Env):
         self.viewer = None
 
     def reset(self):
+        """
+        reset time and simulator
+        """
         # reset time and simulator
         self.terminated = False
         self._env_step_counter = 0
@@ -221,6 +237,14 @@ class RobotEnv(gym.Env):
         return [seed]
 
     def get_extended_observation(self):
+        """
+        get observation array
+        :return obs: an nd array containing
+            sin(joint angles), cos(joint angles),
+            joint velocities, 
+            goal - end-effector position
+            obstacle information
+        """
         joint_poses, joint_vels, _ = self._robot.get_observation()
 
         # vector eef to goal
@@ -310,6 +334,10 @@ class RobotEnv(gym.Env):
         return rgb_array
 
     def _termination(self):
+        """
+        check wether the current episode is terminated
+        due to either out of steps or collision
+        """
         if (self.terminated or self._env_step_counter > self._horizon):
             self._observation = self.get_extended_observation()
             self.terminated = True
@@ -327,6 +355,10 @@ class RobotEnv(gym.Env):
         return False
 
     def _get_reward(self):
+        """
+        the reward function
+        :return reward: the current reward
+        """
         # rewards for goal
         eef_position = np.array(self._p.getLinkState(self._robot.robot_uid, self._robot.eef_uid)[BULLET_LINK_POSE_INDEX])
         distance_to_goal = np.linalg.norm(eef_position[:self.workspace_dim] - self.current_goal[:self.workspace_dim])
@@ -344,7 +376,6 @@ class RobotEnv(gym.Env):
                     self.terminated = True
             reward_obs += self._get_obstacle_reward(distance_to_obs)
 
-        # TODO: maybe fix the interface for getting joint torques one day
         _, _, joint_torques = self._robot.get_observation()
         reward_ctrl = - np.square(joint_torques).sum()
 
@@ -355,6 +386,9 @@ class RobotEnv(gym.Env):
         return reward
 
     def _get_obstacle_reward(self, distance_to_obs):
+        """
+        the part of reward function for avoiding obstacles
+        """
         if self._obs_reward_model == "linear":
             reward_obs = - max(0., 1. - 1. * distance_to_obs / self._obs_reward_length_scale)
         elif self._obs_reward_model == "gaussian":
@@ -367,6 +401,9 @@ class RobotEnv(gym.Env):
         return reward_obs
 
     def _get_goal_reward(self, distance_to_goal):
+        """
+        the part of reward function for going to goal
+        """
         if self._goal_reward_model == "linear":
             reward_goal = (self.workspace_radius * 2. - distance_to_goal) / self.workspace_radius / 2.
         elif self._goal_reward_model == "gaussian":
@@ -380,6 +417,10 @@ class RobotEnv(gym.Env):
 
 
     def _collision(self, buffer=0.0):
+        """
+        check whether the robot is in collision with obstacles
+        :param buffer: buffer for collision checking
+        """
         for obs_uid in self.obs_uids:
             closest_points = self._p.getClosestPoints(self._robot.robot_uid, obs_uid, buffer)
             if len(closest_points) > 0:
@@ -394,6 +435,11 @@ class RobotEnv(gym.Env):
         return False
 
     def _goal_obstacle_collision(self, buffer=0.0):
+        """
+        check whether the (potentially randomly generated) goal
+        and obstacles are in collision
+        :param buffer: buffer for collision checking
+        """
         goal_position, _ = self._p.getBasePositionAndOrientation(self.goal_uid)
         collision_goal = add_collision_goal(self._p, goal_position)
         for obs_uid in self.obs_uids:
@@ -405,6 +451,9 @@ class RobotEnv(gym.Env):
         return False
 
     def _clear_goal_and_obstacles(self):
+        """
+        clear the goal and obstacle objects in pybullet
+        """
         # clear previous goals
         self.current_goal = None
         if self.goal_uid is not None:
@@ -418,6 +467,10 @@ class RobotEnv(gym.Env):
 
 
     def _generate_random_initial_config(self):
+        """
+        generate a random initial configuration and 
+        joint velocities for the robot
+        """
         lower_limit = self._robot._joint_lower_limit
         upper_limit = self._robot._joint_upper_limit
         lower_limit = np.maximum(lower_limit + self._initial_joint_limit_buffer, -np.pi)
@@ -428,15 +481,20 @@ class RobotEnv(gym.Env):
             initial_config = self.q_init + self.np_random.uniform(low=-0.1, high=0.1, size=self.cspace_dim)
             initial_config = np.clip(initial_config, lower_limit, upper_limit)
         initial_vel = self.np_random.uniform(low=-0.005, high=0.005, size=self.cspace_dim)
-        # initial_vel = np.zeros_like(initial_config)
         self._robot.reset(initial_config, initial_vel)
 
     @abstractmethod
     def _generate_random_goal(self):
+        """
+        randomly generate a goal for the end effector
+        """
         pass
         
     @abstractmethod
     def _generate_random_obstacles(self):
+        """
+        randomly generate obstacles in the environment
+        """
         pass
 
 

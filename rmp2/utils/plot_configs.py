@@ -1,5 +1,14 @@
+# The first version was licensed as "Original Source License"(see below).
+# Several enhancements and at UW Robot Learning Lab
+# 
+# Original Source License:
+# 
 # Copyright (c) 2019 Georgia Tech Robot Learning Lab
 # Licensed under the MIT License.
+
+"""
+configs for ploting
+"""
 
 from matplotlib import cm
 from itertools import chain

@@ -1,3 +1,8 @@
+"""
+Gym environment for training rmp policies 
+on top of rmp2 policies for 3-link robot
+"""
+
 from rmp2.envs.three_link_env import ThreeLinkEnv
 from rmp2.rmpgraph.robotics import RobotRMPGraph
 from rmp2.utils.python_utils import merge_dicts
@@ -15,17 +20,23 @@ DEFAULT_CONFIG = {
 }
 
 class ThreeLinkResidualRMPEnv(ThreeLinkEnv):
+    """
+    Gym environment for training rmp policies 
+    on top of rmp2 policies for 3-link robot
+    """
     def __init__(self, config=None):
         if config is not None:
             config = merge_dicts(DEFAULT_CONFIG, config)
         else:
             config = DEFAULT_CONFIG.copy()
         
+        # load rmp configs for the rmp2 policy
         config_path = os.path.join(
             os.path.dirname(__file__), 
             '../configs/3link_residual_rmp_config.yaml'
             )
 
+        # create rmp2 policy
         self.rmp_graph = RobotRMPGraph(
             '3link',
             config_path=config_path, 
@@ -37,6 +48,7 @@ class ThreeLinkResidualRMPEnv(ThreeLinkEnv):
         self._ts_goal = None
         self._ts_obs = None
 
+        # find all the residual rmps to be learned
         self.external_rmp_names = []
         self.external_rmp_links = []
         for key, rmp in zip(self.rmp_graph.keys, self.rmp_graph.rmps):
@@ -58,17 +70,20 @@ class ThreeLinkResidualRMPEnv(ThreeLinkEnv):
 
 
     def _generate_random_goal(self):
+        # additionally keep a goal tensor for computing rmp2 policy
         current_goal, goal_uid = super()._generate_random_goal()
         self._ts_goal = tf.convert_to_tensor([current_goal], dtype=self.dtype)
         return current_goal, goal_uid
 
     def _generate_random_obstacles(self):
+        # additionally keep a obstacle tensor for computing rmp2 policy
         current_obs, obs_uids = super()._generate_random_obstacles()
         self._ts_obs = tf.convert_to_tensor([current_obs], dtype=self.dtype)
         self._ts_obs = tf.reshape(self._ts_obs, (1, -1, self.workspace_dim + 1))
         return current_obs, obs_uids
 
     def step(self, external_rmps):
+        # unpack the flat output of the residual rmps
         index = 0
         features = {}
         for name, link in zip(self.external_rmp_names, self.external_rmp_links):
@@ -86,6 +101,7 @@ class ThreeLinkResidualRMPEnv(ThreeLinkEnv):
             ts_accel = tf.convert_to_tensor([accel], dtype=self.dtype)
             features[name] = (ts_metric_sqrt, ts_accel)
 
+        # compute the combined rmp2 policy
         joint_poses, joint_vels, _ = self._robot.get_observation()
         ts_joint_poses = tf.convert_to_tensor([joint_poses], dtype=self.dtype)
         ts_joint_vels = tf.convert_to_tensor([joint_vels], dtype=self.dtype)
@@ -100,6 +116,9 @@ class ThreeLinkResidualRMPEnv(ThreeLinkEnv):
         return super().step(action)
 
     def get_extended_observation(self):
+        # additionally add the current goal position, 
+        # and link poses & velocities for residual rmps
+        
         link_poses = []
         link_vels = []
 

@@ -1,3 +1,7 @@
+"""
+Script for visualizing the learned policies
+"""
+
 import os
 import json
 import argparse
@@ -5,9 +9,11 @@ import argparse
 import ray
 from ray.tune.registry import get_trainable_cls
 from rmp2.utils.rllib_utils import register_envs_and_models
-
 from ray.tune.registry import ENV_CREATOR, _global_registry
 import numpy as np
+from tqdm import tqdm
+import natsort
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--ckpt-path", type=str)
@@ -17,10 +23,9 @@ parser.add_argument("--n-trials", type=int, default=1)
 
 
 if __name__ == "__main__":
-    import natsort
-
     args = parser.parse_args()
 
+    # if checkpoint number is not given, use the latest checkpoint
     if args.ckpt_number < 0:
         print('using the latest checkpoint')
         ckpt_dirs = [name for name in os.listdir(args.ckpt_path) if os.path.isdir(os.path.join(args.ckpt_path, name))]
@@ -29,6 +34,7 @@ if __name__ == "__main__":
         ckpt_dir =os.path.join(
             args.ckpt_path,
             ckpt_dirs[0])
+    # otherwise load the specified checkpoint unless it is not found
     else:
         ckpt_dir = os.path.join(
             args.ckpt_path,
@@ -50,20 +56,25 @@ if __name__ == "__main__":
         ckpt_dir, 
         'checkpoint-{}'.format(ckpt_number))
 
+    # load experiment config
     params_file = os.path.join(args.ckpt_path, "params.json")
     with open(params_file) as f:
         config = json.load(f)
-
-    ray.init()
-    register_envs_and_models()
-
-
+    # disable parallelism
     config['num_workers'] = 0
 
+    # initialize ray
+    ray.init()
+
+    # register customized environments and models within ray
+    register_envs_and_models()
+
+    # get environment creator and enable rendering
     env_creator = _global_registry.get(ENV_CREATOR, config['env'])
     env_config = config['env_config'].copy()
     env_config['render'] = True
 
+    # restored the learned policy
     cls = get_trainable_cls("PPO")
     agent = cls(config, config['env'])
     agent.restore(agent_ckpt_path)
@@ -72,16 +83,15 @@ if __name__ == "__main__":
     agent.workers.local_worker().env.__del__()
     model = policy.model
 
+    # create a environment
     env = env_creator(env_config)
     env.seed(100)
     env.reset()
     env.step(np.zeros(env.action_space.shape[0],))
 
-    from matplotlib import pyplot as plt
-    from tqdm import tqdm
-
     input('waiting for user input...')
 
+    # roll out the policy for n trials
     for _ in range(args.n_trials):
         state = env.reset()
         rewards = []
@@ -93,6 +103,6 @@ if __name__ == "__main__":
             if done:
                 break
 
-        print(np.sum(rewards))
+        print('total reward from the current episode: ', np.sum(rewards))
 
         episode_len = i + 1
